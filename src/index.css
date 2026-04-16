@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+/* Estilo base para Grow-it */
+body {
+  margin: 0;
+  background-color: #FDF5E6; /* Tu color Nude Arena */
+  color: #7A5C4F;           /* Tu color Tierra para textos */
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  @import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;700&display=swap');
+
+/* Para Glacial Indifference, si la tienes descargada, se usa @font-face. 
+   Si no, usaremos League Spartan como principal por su similitud y elegancia */
+:root {
+  --font-primary: 'Glacial Indifference', sans-serif;
+  --font-secondary: 'League Spartan', sans-serif;
+}
+
+body {
+  font-family: var(--font-primary);
+}
+}
+
+/* Este es el contenedor principal de tu Dashboard */
+.dashboard-alumna {
+  background-color: #F8F3E6; /* Tu color crema base */
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+  z-index: 10;
+}
+
+/* La capa de la sombra */
+.dashboard-alumna::before {
+  content: "";
+  position: fixed; /* Se queda quieta al hacer scroll */
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/fondo.png');
+  background-size: cover;
+  background-position: center;
+  /* El toque mágico: una opacidad muy suave */
+  opacity: 0.1; 
+  pointer-events: none; /* Para que no bloquee los clics en los botones */
+  z-index: 0;
+}
+
+/* Asegúrate de que tus tarjetas de cursos tengan un z-index superior */
+.tarjeta-curso {
+  position: relative;
+  z-index: 1;
+}
