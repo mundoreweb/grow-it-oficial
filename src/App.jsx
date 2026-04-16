@@ -17,7 +17,6 @@ function App() {
   const [sesionIniciada, setSesionIniciada] = useState(false);
   const [emailIngresado, setEmailIngresado] = useState("");
   const [notificaciones, setNotificaciones] = useState(0);
-  
 
   /* ==========================================
      📖 2. ESTADOS DE NAVEGACIÓN (VISTAS)
@@ -29,7 +28,7 @@ function App() {
   /* ==========================================
      🎓 3. ESTADOS DE DATOS (CURSOS Y MODULOS)
      ========================================== */
-  const [cursoEnEdicionBase, setCursoEnEdicionBase] = useState(null);   
+  const [cursoEnEdicionBase, setCursoEnEdicionBase] = useState(null);
   const [listaDeCursos, setListaDeCursos] = useState([]);
   const [nuevoModulo, setNuevoModulo] = useState({
     id: null,
@@ -44,7 +43,7 @@ function App() {
   const [subiendo, setSubiendo] = useState(false); // Loading para subidas de archivos
   const [editandoIndex, setEditandoIndex] = useState(null);
   const [cursosPermitidosAlumna, setCursosPermitidosAlumna] = useState([]);
-  
+
   /* ==========================================
      👥 4. ESTADOS DE ALUMNAS Y GESTIÓN
      ========================================== */
@@ -314,99 +313,109 @@ function App() {
   /* ==========================================
    🔐 MANEJAR CAMBIO DE SESIÓN
    ========================================== */
-const manejarCambioSesion = async (session) => {
-  // 1. Si no hay sesión, reset total
-  if (!session) {
-    setSesion(null);
-    setEsAdmin(false);
-    setSesionIniciada(false);
-    setVerificandoPerfil(false);
-    return;
-  }
-
-  const email = session.user.email.trim().toLowerCase();
-
-  // 2. 🛡️ FILTRO ANTI-REFRESCO (Evita el "Preparando tu espacio" al cambiar de pestaña)
-  // Si ya tenemos una sesión cargada con este mismo email, no hacemos nada.
-  if (sesionIniciada && sesion?.user?.email?.toLowerCase() === email) {
-    console.log("♻️ Sesión estable, ignorando evento repetido.");
-    return;
-  }
-
-  console.log("🚀 Iniciando validación para:", email);
-  
-  // Solo mostramos pantalla de carga si es la PRIMERA VEZ que entramos
-  if (!sesionIniciada) {
-    setVerificandoPerfil(true);
-  }
-
-  try {
-    // 👑 CASO ADMINISTRADORA (Prioridad absoluta)
-    if (email === MI_CORREO_ADMIN.toLowerCase().trim()) {
-      console.log("👑 Acceso confirmado: Administradora");
-      setSesion(session);
-      setSesionIniciada(true);
-      setEsAdmin(true);
-      setNombreTemporal("Administradora 🌿");
-      await cargarTodo(true, []);
-      return; // Salida rápida para la jefa
+  const manejarCambioSesion = async (session) => {
+    // 1. Si no hay sesión, reset total
+    if (!session) {
+      setSesion(null);
+      setEsAdmin(false);
+      setSesionIniciada(false);
+      setVerificandoPerfil(false);
+      return;
     }
 
-    // 👩‍🎓 CASO ALUMNA
-    console.log("👩‍🎓 Buscando alumna en DB...");
-    
-    // Ponemos un tiempo límite a la consulta para que no se quede "colgada"
-    const consultaDB = supabase.from("alumnas").select("*").eq("email", email).maybeSingle();
-    const tiempoLimite = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 8000));
+    const email = session.user.email.trim().toLowerCase();
 
-    const { data: alumna, error: errorAlumna } = await Promise.race([consultaDB, tiempoLimite]);
-
-    if (errorAlumna) throw errorAlumna;
-
-    if (alumna) {
-      console.log("✅ Alumna encontrada:", alumna.nombre);
-      setSesion(session);
-      setSesionIniciada(true);
-      setNombreTemporal(alumna.nombre);
-      const susCursos = alumna.cursos_permitidos || [];
-      setCursosPermitidosAlumna(susCursos);
-      await cargarTodo(false, susCursos);
-    } else {
-      console.warn("⚠️ El correo no está en la tabla de alumnas.");
-      // Opcional: setSesionIniciada(true) para que vea al menos el dashboard vacío o error
+    // 2. 🛡️ FILTRO ANTI-REFRESCO (Evita el "Preparando tu espacio" al cambiar de pestaña)
+    // Si ya tenemos una sesión cargada con este mismo email, no hacemos nada.
+    if (sesionIniciada && sesion?.user?.email?.toLowerCase() === email) {
+      console.log("♻️ Sesión estable, ignorando evento repetido.");
+      return;
     }
 
-  } catch (err) {
-    console.error("🔥 Error en validación:", err.message);
-  } finally {
-    // IMPORTANTE: Pase lo que pase, apagamos la pantalla de carga al final
-    console.log("🏁 Finalizando estado de carga");
-    setVerificandoPerfil(false);
-  }
-};
+    console.log("🚀 Iniciando validación para:", email);
 
- /* ==========================================
-   🔄 INICIALIZACIÓN DE LA APP (VERSIÓN FINAL)
-   ========================================== */
-useEffect(() => {
-  // 1. Escuchamos los cambios de sesión de forma directa
-  const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-    console.log("🔔 Evento Auth:", event);
-
-    // Solo llamamos a la lógica si hay una sesión real o si el usuario cerró sesión
-    if (session || event === 'SIGNED_OUT') {
-      manejarCambioSesion(session);
+    // Solo mostramos pantalla de carga si es la PRIMERA VEZ que entramos
+    if (!sesionIniciada) {
+      setVerificandoPerfil(true);
     }
-  });
 
-  // 2. Limpieza: Solo se ejecuta cuando el usuario CIERRA la pestaña o la App
-  return () => {
-    if (subscription) {
-      subscription.unsubscribe();
-      console.log("🧹 Conexión de seguridad liberada");
+    try {
+      // 👑 CASO ADMINISTRADORA (Prioridad absoluta)
+      if (email === MI_CORREO_ADMIN.toLowerCase().trim()) {
+        console.log("👑 Acceso confirmado: Administradora");
+        setSesion(session);
+        setSesionIniciada(true);
+        setEsAdmin(true);
+        setNombreTemporal("Administradora 🌿");
+        await cargarTodo(true, []);
+        return; // Salida rápida para la jefa
+      }
+
+      // 👩‍🎓 CASO ALUMNA
+      console.log("👩‍🎓 Buscando alumna en DB...");
+
+      // Ponemos un tiempo límite a la consulta para que no se quede "colgada"
+      const consultaDB = supabase
+        .from("alumnas")
+        .select("*")
+        .eq("email", email)
+        .maybeSingle();
+      const tiempoLimite = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout")), 8000),
+      );
+
+      const { data: alumna, error: errorAlumna } = await Promise.race([
+        consultaDB,
+        tiempoLimite,
+      ]);
+
+      if (errorAlumna) throw errorAlumna;
+
+      if (alumna) {
+        console.log("✅ Alumna encontrada:", alumna.nombre);
+        setSesion(session);
+        setSesionIniciada(true);
+        setNombreTemporal(alumna.nombre);
+        const susCursos = alumna.cursos_permitidos || [];
+        setCursosPermitidosAlumna(susCursos);
+        await cargarTodo(false, susCursos);
+      } else {
+        console.warn("⚠️ El correo no está en la tabla de alumnas.");
+        // Opcional: setSesionIniciada(true) para que vea al menos el dashboard vacío o error
+      }
+    } catch (err) {
+      console.error("🔥 Error en validación:", err.message);
+    } finally {
+      // IMPORTANTE: Pase lo que pase, apagamos la pantalla de carga al final
+      console.log("🏁 Finalizando estado de carga");
+      setVerificandoPerfil(false);
     }
   };
-}, []); // <--- IMPORTANTE: El [] asegura que esto se monte UNA sola vez.
+
+  /* ==========================================
+   🔄 INICIALIZACIÓN DE LA APP (VERSIÓN FINAL)
+   ========================================== */
+  useEffect(() => {
+    // 1. Escuchamos los cambios de sesión de forma directa
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("🔔 Evento Auth:", event);
+
+      // Solo llamamos a la lógica si hay una sesión real o si el usuario cerró sesión
+      if (session || event === "SIGNED_OUT") {
+        manejarCambioSesion(session);
+      }
+    });
+
+    // 2. Limpieza: Solo se ejecuta cuando el usuario CIERRA la pestaña o la App
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+        console.log("🧹 Conexión de seguridad liberada");
+      }
+    };
+  }, []); // <--- IMPORTANTE: El [] asegura que esto se monte UNA sola vez.
 
   // 2. Función auxiliar para el modal (puedes ponerla fuera o dentro del useEffect)
 
@@ -454,48 +463,47 @@ useEffect(() => {
 
   // 1. Definimos la función (El Motor)
   const manejarActualizacionManual = async () => {
-  // 1. Usamos el ID del módulo actual
-  const moduloId = moduloActivoData?.id;
+    // 1. Usamos el ID del módulo actual
+    const moduloId = moduloActivoData?.id;
 
-  // 2. Limpieza visual instantánea usando los nombres correctos
-  setComentariosLeccion([]); 
-  setListaComentarios([]); 
+    // 2. Limpieza visual instantánea usando los nombres correctos
+    setComentariosLeccion([]);
+    setListaComentarios([]);
 
-  try {
-    // 3. Construcción de la consulta
-    let query = supabase
-      .from("comentarios")
-      .select("*, perfiles (nombre_completo)");
+    try {
+      // 3. Construcción de la consulta
+      let query = supabase
+        .from("comentarios")
+        .select("*, perfiles (nombre_completo)");
 
-    if (moduloId) {
-      // Si estamos en una lección específica
-      query = query
-        .eq("modulo_id", moduloId)
-        .order("created_at", { ascending: true });
-    } else {
-      // Modo Gestión Staff: Todo lo nuevo primero
-      query = query.order("created_at", { ascending: false });
+      if (moduloId) {
+        // Si estamos en una lección específica
+        query = query
+          .eq("modulo_id", moduloId)
+          .order("created_at", { ascending: true });
+      } else {
+        // Modo Gestión Staff: Todo lo nuevo primero
+        query = query.order("created_at", { ascending: false });
+      }
+
+      // 4. Ejecución de la consulta
+      // Nota: Supabase ya maneja la frescura de datos,
+      // pero si quieres asegurar, basta con el await directo.
+      const { data: mensajes, error: err } = await query;
+
+      if (err) throw err;
+
+      // 5. Sincronización de estados con los nombres nuevos
+      const datosFormateados = mensajes || [];
+
+      setComentariosLeccion(datosFormateados); // Para la vista de alumna
+      setListaComentarios(datosFormateados); // Para tu Panel de Staff
+
+      console.log("✅ Datos globales actualizados con éxito.");
+    } catch (error) {
+      console.error("❌ Error en actualización manual:", error.message);
     }
-
-    // 4. Ejecución de la consulta
-    // Nota: Supabase ya maneja la frescura de datos, 
-    // pero si quieres asegurar, basta con el await directo.
-    const { data: mensajes, error: err } = await query;
-
-    if (err) throw err;
-
-    // 5. Sincronización de estados con los nombres nuevos
-    const datosFormateados = mensajes || [];
-    
-    setComentariosLeccion(datosFormateados); // Para la vista de alumna
-    setListaComentarios(datosFormateados);   // Para tu Panel de Staff
-
-    console.log("✅ Datos globales actualizados con éxito.");
-
-  } catch (error) {
-    console.error("❌ Error en actualización manual:", error.message);
-  }
-};
+  };
 
   // 2. El Hook (La mecha que enciende el motor al cargar)
   useEffect(() => {
@@ -720,31 +728,31 @@ useEffect(() => {
 
   // --- 3. LÓGICA DE SESIÓN ---
   const manejarLogin = async (e) => {
-  if (e) e.preventDefault();
-  
-  // 🟢 Cambiamos emailIngresado por emailLogueado
-  if (!emailLogueado) {
-    alert("Por favor, introduce tu correo. ✨");
-    return;
-  }
+    if (e) e.preventDefault();
 
-  try {
-    setVerificandoPerfil(true);
-    const { error } = await supabase.auth.signInWithOtp({
-      email: emailLogueado.trim().toLowerCase(), // 🟢 Aquí también
-      options: {
-        emailRedirectTo: window.location.origin,
-      },
-    });
+    // 🟢 Cambiamos emailIngresado por emailLogueado
+    if (!emailLogueado) {
+      alert("Por favor, introduce tu correo. ✨");
+      return;
+    }
 
-    if (error) throw error;
-    alert("¡Enlace enviado! Revisa tu bandeja de entrada. 🌿");
-  } catch (err) {
-    alert("No pudimos enviar el acceso: " + err.message);
-  } finally {
-    setVerificandoPerfil(false);
-  }
-};
+    try {
+      setVerificandoPerfil(true);
+      const { error } = await supabase.auth.signInWithOtp({
+        email: emailLogueado.trim().toLowerCase(), // 🟢 Aquí también
+        options: {
+          emailRedirectTo: window.location.origin,
+        },
+      });
+
+      if (error) throw error;
+      alert("¡Enlace enviado! Revisa tu bandeja de entrada. 🌿");
+    } catch (err) {
+      alert("No pudimos enviar el acceso: " + err.message);
+    } finally {
+      setVerificandoPerfil(false);
+    }
+  };
 
   const cerrarSesion = async () => {
     try {
@@ -1945,7 +1953,7 @@ useEffect(() => {
                                    enviandoId === com.id
                                      ? "bg-gray-400 cursor-not-allowed scale-95 text-white"
                                      : "bg-[#4A6741] hover:bg-[#3d5535] active:scale-95 text-white"
-                                  }
+                                 }
                                `}
                             >
                               {enviandoId === com.id ? (
@@ -2372,7 +2380,7 @@ const ComunidadInteractiva = ({
         <button
           onClick={enviarComentario}
           disabled={enviandoComentario || !nuevoComentario.trim()}
-          className="bg-[#4A6741] text-white px-6 rounded-2xl hover:opacity-90 disabled:opacity-50 font-bold h-24 transition-all"
+          className="bg-[#4A6741] text-white px-6 py-3 rounded-2xl hover:opacity-90 disabled:opacity-50 font-bold transition-all h-full"
         >
           {enviandoComentario ? "..." : "Enviar"}
         </button>
