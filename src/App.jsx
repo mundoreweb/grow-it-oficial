@@ -40,10 +40,16 @@ function App() {
     clase_grabada: "",
     descargablesDinamicos: [{ nombre: "", archivo: null, urlExistente: null }],
   });
+  const [nuevoCurso, setNuevoCurso] = useState({
+    nombre: "",
+    foto: null
+});
   const [subiendo, setSubiendo] = useState(false); // Loading para subidas de archivos
   const [editandoIndex, setEditandoIndex] = useState(null);
   const [cursosPermitidosAlumna, setCursosPermitidosAlumna] = useState([]);
-
+  const [nuevaImagenCursoFile, setNuevaImagenCursoFile] = useState(null);
+  const [previewImagenCurso, setPreviewImagenCurso] = useState(null);
+ 
   /* ==========================================
      👥 4. ESTADOS DE ALUMNAS Y GESTIÓN
      ========================================== */
@@ -209,75 +215,6 @@ function App() {
     }
   };
 
-  const guardarSoloCurso = async () => {
-    setSubiendo(true);
-    console.log("1. Inicio - Archivo seleccionado:", nuevaImagenCursoFile);
-    console.log("2. Modo Edición:", esEdicion, "ID:", cursoEnEdicionBase?.id);
-
-    try {
-      let urlImagenFinal = esEdicion ? cursoEnEdicionBase.fotoActual : null;
-
-      if (nuevaImagenCursoFile) {
-        console.log("3. Entrando a la subida de imagen...");
-        const fileName = `${Date.now()}_portada.jpg`;
-
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("imagenes-cursos")
-          .upload(fileName, nuevaImagenCursoFile);
-
-        if (uploadError) {
-          console.error("❌ Error en Storage:", uploadError);
-          throw uploadError;
-        }
-
-        console.log("4. Subida exitosa:", uploadData);
-
-        const { data } = supabase.storage
-          .from("imagenes-cursos")
-          .getPublicUrl(fileName);
-
-        if (data?.publicUrl) {
-          urlImagenFinal = data.publicUrl;
-          console.log("🚀 5. URL generada y lista:", urlImagenFinal);
-        }
-      }
-
-      console.log("6. Enviando a la DB - URL Final:", urlImagenFinal);
-
-      if (esEdicion) {
-        const { data: updateData, error: updateError } = await supabase
-          .from("cursos")
-          .update({
-            nombre: nuevoModulo.nombreNuevoCurso.trim(),
-            foto: urlImagenFinal,
-          })
-          .eq("id", cursoEnEdicionBase.id)
-          .select(); // Agregamos select para ver qué devuelve
-
-        if (updateError) throw updateError;
-        console.log("7. Resultado Update DB:", updateData);
-        alert("✅ Curso actualizado correctamente.");
-      } else {
-        const { error: insertError } = await supabase.from("cursos").insert([
-          {
-            nombre: nuevoModulo.nombreNuevoCurso.trim(),
-            foto: urlImagenFinal,
-          },
-        ]);
-
-        if (insertError) throw insertError;
-        alert("✨ Nuevo curso creado con éxito.");
-      }
-
-      await cargarTodo(esAdmin);
-      setNuevaImagenCursoFile(null);
-    } catch (e) {
-      console.error("🔴 ERROR COMPLETO:", e);
-      alert("Error: " + e.message);
-    } finally {
-      setSubiendo(false);
-    }
-  };
 
   // Función para añadir otra fila de descargable en la UI
   const agregarFilaDescargable = () => {
@@ -864,7 +801,7 @@ function App() {
   const guardarTodoElCurso = async () => {
     const esEdicion = cursoEnEdicionBase !== null;
 
-    // Validación de nombre
+    // 1. Validación de nombre (Usando tu objeto nuevoModulo)
     if (!nuevoModulo.nombreNuevoCurso?.trim()) {
       return alert("El nombre del curso no puede estar vacío 🌿");
     }
@@ -872,10 +809,9 @@ function App() {
     try {
       setSubiendo(true);
 
-      // 1. Manejo de la Imagen
-      let urlImagenFinal = esEdicion
-        ? cursoEnEdicionBase.fotoActual
-        : previewImagenCurso;
+      // 2. Manejo de la Imagen
+      // Si estamos editando, mantenemos la foto actual a menos que haya una nueva
+      let urlImagenFinal = esEdicion ? cursoEnEdicionBase.foto : null;
 
       if (nuevaImagenCursoFile) {
         const fileName = `${Date.now()}_portada.jpg`;
@@ -885,50 +821,58 @@ function App() {
 
         if (uploadError) throw uploadError;
 
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("imagenes-cursos").getPublicUrl(fileName);
+        const { data: { publicUrl } } = supabase.storage
+          .from("imagenes-cursos")
+          .getPublicUrl(fileName);
 
         urlImagenFinal = publicUrl;
       }
 
-      // 2. Decisión: ¿Actualizamos o Insertamos?
+      // 3. Envío a la Tabla 'cursos'
+      const datosParaDB = {
+        nombre: nuevoModulo.nombreNuevoCurso.trim(),
+        foto: urlImagenFinal,
+      };
+
       if (esEdicion) {
-        // --- MODO EDICIÓN ---
         const { error: updateError } = await supabase
           .from("cursos")
-          .update({
-            nombre: nuevoModulo.nombreNuevoCurso.trim(),
-            foto: urlImagenFinal,
-          })
+          .update(datosParaDB)
           .eq("id", cursoEnEdicionBase.id);
 
         if (updateError) throw updateError;
         alert("✅ Curso actualizado correctamente.");
       } else {
-        // --- MODO CREACIÓN ---
-        const { error: insertError } = await supabase.from("cursos").insert([
-          {
-            nombre: nuevoModulo.nombreNuevoCurso.trim(),
-            foto: urlImagenFinal,
-          },
-        ]);
+        const { error: insertError } = await supabase
+          .from("cursos")
+          .insert([datosParaDB]);
 
         if (insertError) throw insertError;
         alert("✨ Nuevo curso creado con éxito.");
       }
 
-      // 3. Limpieza y Refresco
-      limpiarFormulario(); // Tu función centralizada
-      if (esEdicion) setCursoEnEdicionBase(null); // Reset del modo edición
+      // 4. LIMPIEZA TOTAL (Para volver al estado de la imagen 09.png)
+      // Reseteamos el nombre en el objeto
+      setNuevoModulo(prev => ({
+        ...prev,
+        nombreNuevoCurso: ""
+      }));
+
+      // Reseteamos archivos y previsualizaciones
+      if (typeof setNuevaImagenCursoFile === "function") setNuevaImagenCursoFile(null);
+      if (typeof setPreviewImagenCurso === "function") setPreviewImagenCurso(null);
+      if (typeof setCursoEnEdicionBase === "function") setCursoEnEdicionBase(null);
+
+      // Refrescamos la lista de cursos
       await cargarTodo(true);
+
     } catch (e) {
       console.error("Error en la operación:", e);
       alert("Error: " + e.message);
     } finally {
       setSubiendo(false);
     }
-  };
+};
 
   const eliminarCursoCompleto = async (idCurso, nombre) => {
     const confirmar = window.confirm(
