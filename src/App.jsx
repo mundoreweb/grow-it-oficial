@@ -380,8 +380,12 @@ function App() {
         setCursosPermitidosAlumna(susCursos);
         await cargarTodo(false, susCursos);
       } else {
-        console.warn("⚠️ El correo no está en la tabla de alumnas.");
-        // Opcional: setSesionIniciada(true) para que vea al menos el dashboard vacío o error
+        // 🚪 SI NO ES ALUMNA, LA EXPULSAMOS
+        console.warn("⚠️ Acceso denegado: No está en la lista de alumnas.");
+        alert("Tu cuenta no tiene cursos activos o el acceso ha sido revocado.");
+        await supabase.auth.signOut(); // Esto cierra la sesión de Supabase Auth
+        setSesion(null);
+        setSesionIniciada(false);
       }
     } catch (err) {
       console.error("🔥 Error en validación:", err.message);
