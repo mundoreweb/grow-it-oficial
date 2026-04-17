@@ -1105,25 +1105,34 @@ function App() {
   };
 
   const limpiarFormulario = () => {
-    setEditandoIndex(null);
-    setCursoEnEdicionBase(null);
-    setNuevaImagenCursoFile(null);
-    setPreviewImagenCurso(null);
+  // 1. Limpieza de índices y estados de edición
+  // Usamos el chequeo de "typeof" para que si la función no existe, no rompa el código
+  if (typeof setEditandoIndex === "function") setEditandoIndex(null);
+  if (typeof setCursoEnEdicionBase === "function") setCursoEnEdicionBase(null);
+  
+  // 🛡️ Aquí estaban los errores: agregamos protección
+  if (typeof setNuevaImagenCursoFile === "function") setNuevaImagenCursoFile(null);
+  if (typeof setPreviewImagenCurso === "function") setPreviewImagenCurso(null);
+  if (typeof setVideoPrincipalId === "function") setVideoPrincipalId("");
+  if (typeof setClaseGrabadaId === "function") setClaseGrabadaId("");
 
-    setNuevoModulo({
-      id: null,
-      curso_id: "",
-      cursoDestino: "",
-      numero: "",
-      titulo: "",
-      info: "",
-      video: "",
-      clase_grabada: "",
-      descargablesDinamicos: [{ nombre: "", archivo: null }], // Resetear la lista de archivos
-      nombreNuevoCurso: "",
-      imagenCurso: null,
-    });
-  };
+  // 2. Reset del objeto principal (Esto es lo que limpia los textos que ves)
+  setNuevoModulo({
+    id: null,
+    curso_id: "",
+    cursoDestino: "",
+    numero: "",
+    titulo: "",
+    info: "",
+    video: "",
+    clase_grabada: "",
+    descargablesDinamicos: [{ nombre: "", archivo: null }], // Vuelve a un solo campo vacío
+    nombreNuevoCurso: "",
+    imagenCurso: null,
+  });
+
+  console.log("🧹 Formulario reseteado con éxito.");
+};
   const getYoutubeId = (url) => {
     // 1. Si no hay URL, devolvemos "EMPTY" para que Supabase lo guarde felizmente
     if (!url || typeof url !== "string") return "EMPTY";
