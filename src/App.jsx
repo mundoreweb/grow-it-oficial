@@ -1017,7 +1017,7 @@ function App() {
       if (dbError) throw dbError;
 
       // 6. FINALIZACIÓN EXITOSA
-      alert("✅ ÉXITO TOTAL: Módulo guardado con descripción larga.");
+      alert("✅ ÉXITO TOTAL: Módulo guardado.");
 
       // --- BLOQUE DE LIMPIEZA Y SALIDA ---
 
