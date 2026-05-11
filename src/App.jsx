@@ -2076,53 +2076,53 @@ function App() {
                         {moduloActivoData?.descargables &&
                           moduloActivoData.descargables.length > 0 && (
                             <div className="mt-12 pt-10 border-t border-[#F4F1EC]">
-                              <h4 className="text-[#4A6741] font-bold uppercase text-[10px] tracking-widest mb-6 flex items-center gap-2">
-                                Material de Apoyo 🌿
-                              </h4>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {moduloActivoData?.descargables?.map(
-                                  (item, idx) => {
-                                    const urlFinal = item.url?.startsWith(
-                                      "http",
-                                    )
-                                      ? item.url
-                                      : `https://fgwiwgahflspovgbgpwp.supabase.co/storage/v1/object/public/descargables/${item.url}`;
+    <h4 className="text-[#4A6741] font-bold uppercase text-[10px] tracking-widest mb-6 flex items-center gap-2">
+      Material de Apoyo 🌿
+    </h4>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {moduloActivoData.descargables.map((item, idx) => {
+        const urlFinal = item.url?.startsWith("http")
+          ? item.url
+          : `https://fgwiwgahflspovgbgpwp.supabase.co/storage/v1/object/public/descargables/${item.url}`;
 
-                                    return (
-                                      <a
-                                        key={idx}
-                                        href={urlFinal}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex justify-between items-center bg-[#FDF5E6] hover:bg-[#F9F6F2] p-5 rounded-2xl border border-[#F4F1EC] transition-all group"
-                                      >
-                                        <div className="flex flex-col">
-                                          <span className="text-[11px] font-bold uppercase text-[#7A5C4F] tracking-wider">
-                                            {item.label ||
-                                              "Guía PDF del Módulo"}
-                                          </span>
-                                          <span className="text-[9px] text-gray-400 italic mt-1">
-                                            Documento adjunto
-                                          </span>
-                                        </div>
-                                        <div className="bg-white p-2 rounded-full shadow-sm group-hover:scale-110 transition-transform">
-                                          <span className="text-sm">⬇️</span>
-                                        </div>
-                                      </a>
-                                    );
-                                  },
-                                )}
-                              </div>
-                              <ComunidadInteractiva
-                                moduloId={moduloActivoData?.id}
-                                listaComentarios={comentariosLeccion} // Asegúrate que este sea el nombre de tu estado
-                                nuevoComentario={nuevoComentario}
-                                setNuevoComentario={setNuevoComentario}
-                                enviarComentario={enviarComentario}
-                                enviandoComentario={enviandoComentario}
-                              />
-                            </div>
-                          )}
+        return (
+          <a
+            key={idx}
+            href={urlFinal}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex justify-between items-center bg-[#FDF5E6] hover:bg-[#F9F6F2] p-5 rounded-2xl border border-[#F4F1EC] transition-all group"
+          >
+            <div className="flex flex-col">
+              <span className="text-[11px] font-bold uppercase text-[#7A5C4F] tracking-wider">
+                {item.label || "Guía PDF del Módulo"}
+              </span>
+              <span className="text-[9px] text-gray-400 italic mt-1">
+                Documento adjunto
+              </span>
+            </div>
+            <div className="bg-white p-2 rounded-full shadow-sm group-hover:scale-110 transition-transform">
+              <span className="text-sm">⬇️</span>
+            </div>
+          </a>
+        );
+      })}
+    </div>
+  </div>
+)}
+
+{/* 4. COMUNIDAD INTERACTIVA (Independiente, siempre visible) */}
+<div className="mt-12 pt-10 border-t border-[#F4F1EC]">
+  <ComunidadInteractiva
+    moduloId={moduloActivoData?.id}
+    listaComentarios={comentariosLeccion}
+    nuevoComentario={nuevoComentario}
+    setNuevoComentario={setNuevoComentario}
+    enviarComentario={enviarComentario}
+    enviandoComentario={enviandoComentario}
+  />
+</div>
+                          
                       </div>
                     </div>
                   </div>
