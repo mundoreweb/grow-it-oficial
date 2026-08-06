@@ -1,9 +1,14 @@
 import { supabase } from "./supabaseClient";
 import React, { useState, useEffect } from "react";
+import LandingPageDemo from './components/LandingPageDemo';
 
 const MI_CORREO_ADMIN = "alquimia135@gmail.com";
 
 function App() {
+  /* ==========================================
+     🌿 0. LANDING PAGE DE PRUEBA (TEMPORAL)
+     ========================================== */
+  const [mostrarLandingDemo, setMostrarLandingDemo] = useState(true);
   /* ==========================================
      🌿 1. ESTADOS DE AUTENTICACIÓN Y SESIÓN
      ========================================== */
@@ -42,14 +47,14 @@ function App() {
   });
   const [nuevoCurso, setNuevoCurso] = useState({
     nombre: "",
-    foto: null
-});
+    foto: null,
+  });
   const [subiendo, setSubiendo] = useState(false); // Loading para subidas de archivos
   const [editandoIndex, setEditandoIndex] = useState(null);
   const [cursosPermitidosAlumna, setCursosPermitidosAlumna] = useState([]);
   const [nuevaImagenCursoFile, setNuevaImagenCursoFile] = useState(null);
   const [previewImagenCurso, setPreviewImagenCurso] = useState(null);
- 
+
   /* ==========================================
      👥 4. ESTADOS DE ALUMNAS Y GESTIÓN
      ========================================== */
@@ -61,6 +66,13 @@ function App() {
     cursos: [],
   });
 
+  /* ==========================================
+     🚀 VISTA CONDICIONAL LANDING DEMO
+     ========================================== */
+  if (mostrarLandingDemo) {
+    return <LandingPageDemo alIrADashboard={() => setMostrarLandingDemo(false)} />;
+  }
+  
   /* ==========================================
      💬 5. ESTADOS DE COMUNIDAD (COMENTARIOS)
      ========================================== */
@@ -215,7 +227,6 @@ function App() {
     }
   };
 
-
   // Función para añadir otra fila de descargable en la UI
   const agregarFilaDescargable = () => {
     const ultimaFila =
@@ -319,7 +330,9 @@ function App() {
       } else {
         // 🚪 SI NO ES ALUMNA, LA EXPULSAMOS
         console.warn("⚠️ Acceso denegado: No está en la lista de alumnas.");
-        alert("Tu cuenta no tiene cursos activos o el acceso ha sido revocado.");
+        alert(
+          "Tu cuenta no tiene cursos activos o el acceso ha sido revocado.",
+        );
         await supabase.auth.signOut(); // Esto cierra la sesión de Supabase Auth
         setSesion(null);
         setSesionIniciada(false);
@@ -821,9 +834,9 @@ function App() {
 
         if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
-          .from("imagenes-cursos")
-          .getPublicUrl(fileName);
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("imagenes-cursos").getPublicUrl(fileName);
 
         urlImagenFinal = publicUrl;
       }
@@ -853,26 +866,28 @@ function App() {
 
       // 4. LIMPIEZA TOTAL (Para volver al estado de la imagen 09.png)
       // Reseteamos el nombre en el objeto
-      setNuevoModulo(prev => ({
+      setNuevoModulo((prev) => ({
         ...prev,
-        nombreNuevoCurso: ""
+        nombreNuevoCurso: "",
       }));
 
       // Reseteamos archivos y previsualizaciones
-      if (typeof setNuevaImagenCursoFile === "function") setNuevaImagenCursoFile(null);
-      if (typeof setPreviewImagenCurso === "function") setPreviewImagenCurso(null);
-      if (typeof setCursoEnEdicionBase === "function") setCursoEnEdicionBase(null);
+      if (typeof setNuevaImagenCursoFile === "function")
+        setNuevaImagenCursoFile(null);
+      if (typeof setPreviewImagenCurso === "function")
+        setPreviewImagenCurso(null);
+      if (typeof setCursoEnEdicionBase === "function")
+        setCursoEnEdicionBase(null);
 
       // Refrescamos la lista de cursos
       await cargarTodo(true);
-
     } catch (e) {
       console.error("Error en la operación:", e);
       alert("Error: " + e.message);
     } finally {
       setSubiendo(false);
     }
-};
+  };
 
   const eliminarCursoCompleto = async (idCurso, nombre) => {
     const confirmar = window.confirm(
@@ -1049,34 +1064,37 @@ function App() {
   };
 
   const limpiarFormulario = () => {
-  // 1. Limpieza de índices y estados de edición
-  // Usamos el chequeo de "typeof" para que si la función no existe, no rompa el código
-  if (typeof setEditandoIndex === "function") setEditandoIndex(null);
-  if (typeof setCursoEnEdicionBase === "function") setCursoEnEdicionBase(null);
-  
-  // 🛡️ Aquí estaban los errores: agregamos protección
-  if (typeof setNuevaImagenCursoFile === "function") setNuevaImagenCursoFile(null);
-  if (typeof setPreviewImagenCurso === "function") setPreviewImagenCurso(null);
-  if (typeof setVideoPrincipalId === "function") setVideoPrincipalId("");
-  if (typeof setClaseGrabadaId === "function") setClaseGrabadaId("");
+    // 1. Limpieza de índices y estados de edición
+    // Usamos el chequeo de "typeof" para que si la función no existe, no rompa el código
+    if (typeof setEditandoIndex === "function") setEditandoIndex(null);
+    if (typeof setCursoEnEdicionBase === "function")
+      setCursoEnEdicionBase(null);
 
-  // 2. Reset del objeto principal (Esto es lo que limpia los textos que ves)
-  setNuevoModulo({
-    id: null,
-    curso_id: "",
-    cursoDestino: "",
-    numero: "",
-    titulo: "",
-    info: "",
-    video: "",
-    clase_grabada: "",
-    descargablesDinamicos: [{ nombre: "", archivo: null }], // Vuelve a un solo campo vacío
-    nombreNuevoCurso: "",
-    imagenCurso: null,
-  });
+    // 🛡️ Aquí estaban los errores: agregamos protección
+    if (typeof setNuevaImagenCursoFile === "function")
+      setNuevaImagenCursoFile(null);
+    if (typeof setPreviewImagenCurso === "function")
+      setPreviewImagenCurso(null);
+    if (typeof setVideoPrincipalId === "function") setVideoPrincipalId("");
+    if (typeof setClaseGrabadaId === "function") setClaseGrabadaId("");
 
-  console.log("🧹 Formulario reseteado con éxito.");
-};
+    // 2. Reset del objeto principal (Esto es lo que limpia los textos que ves)
+    setNuevoModulo({
+      id: null,
+      curso_id: "",
+      cursoDestino: "",
+      numero: "",
+      titulo: "",
+      info: "",
+      video: "",
+      clase_grabada: "",
+      descargablesDinamicos: [{ nombre: "", archivo: null }], // Vuelve a un solo campo vacío
+      nombreNuevoCurso: "",
+      imagenCurso: null,
+    });
+
+    console.log("🧹 Formulario reseteado con éxito.");
+  };
   const getYoutubeId = (url) => {
     // 1. Si no hay URL, devolvemos "EMPTY" para que Supabase lo guarde felizmente
     if (!url || typeof url !== "string") return "EMPTY";
@@ -2076,53 +2094,57 @@ function App() {
                         {moduloActivoData?.descargables &&
                           moduloActivoData.descargables.length > 0 && (
                             <div className="mt-12 pt-10 border-t border-[#F4F1EC]">
-    <h4 className="text-[#4A6741] font-bold uppercase text-[10px] tracking-widest mb-6 flex items-center gap-2">
-      Material de Apoyo 🌿
-    </h4>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {moduloActivoData.descargables.map((item, idx) => {
-        const urlFinal = item.url?.startsWith("http")
-          ? item.url
-          : `https://fgwiwgahflspovgbgpwp.supabase.co/storage/v1/object/public/descargables/${item.url}`;
+                              <h4 className="text-[#4A6741] font-bold uppercase text-[10px] tracking-widest mb-6 flex items-center gap-2">
+                                Material de Apoyo 🌿
+                              </h4>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {moduloActivoData.descargables.map(
+                                  (item, idx) => {
+                                    const urlFinal = item.url?.startsWith(
+                                      "http",
+                                    )
+                                      ? item.url
+                                      : `https://fgwiwgahflspovgbgpwp.supabase.co/storage/v1/object/public/descargables/${item.url}`;
 
-        return (
-          <a
-            key={idx}
-            href={urlFinal}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex justify-between items-center bg-[#FDF5E6] hover:bg-[#F9F6F2] p-5 rounded-2xl border border-[#F4F1EC] transition-all group"
-          >
-            <div className="flex flex-col">
-              <span className="text-[11px] font-bold uppercase text-[#7A5C4F] tracking-wider">
-                {item.label || "Guía PDF del Módulo"}
-              </span>
-              <span className="text-[9px] text-gray-400 italic mt-1">
-                Documento adjunto
-              </span>
-            </div>
-            <div className="bg-white p-2 rounded-full shadow-sm group-hover:scale-110 transition-transform">
-              <span className="text-sm">⬇️</span>
-            </div>
-          </a>
-        );
-      })}
-    </div>
-  </div>
-)}
+                                    return (
+                                      <a
+                                        key={idx}
+                                        href={urlFinal}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex justify-between items-center bg-[#FDF5E6] hover:bg-[#F9F6F2] p-5 rounded-2xl border border-[#F4F1EC] transition-all group"
+                                      >
+                                        <div className="flex flex-col">
+                                          <span className="text-[11px] font-bold uppercase text-[#7A5C4F] tracking-wider">
+                                            {item.label ||
+                                              "Guía PDF del Módulo"}
+                                          </span>
+                                          <span className="text-[9px] text-gray-400 italic mt-1">
+                                            Documento adjunto
+                                          </span>
+                                        </div>
+                                        <div className="bg-white p-2 rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                                          <span className="text-sm">⬇️</span>
+                                        </div>
+                                      </a>
+                                    );
+                                  },
+                                )}
+                              </div>
+                            </div>
+                          )}
 
-{/* 4. COMUNIDAD INTERACTIVA (Independiente, siempre visible) */}
-<div className="mt-12 pt-10 border-t border-[#F4F1EC]">
-  <ComunidadInteractiva
-    moduloId={moduloActivoData?.id}
-    listaComentarios={comentariosLeccion}
-    nuevoComentario={nuevoComentario}
-    setNuevoComentario={setNuevoComentario}
-    enviarComentario={enviarComentario}
-    enviandoComentario={enviandoComentario}
-  />
-</div>
-                          
+                        {/* 4. COMUNIDAD INTERACTIVA (Independiente, siempre visible) */}
+                        <div className="mt-12 pt-10 border-t border-[#F4F1EC]">
+                          <ComunidadInteractiva
+                            moduloId={moduloActivoData?.id}
+                            listaComentarios={comentariosLeccion}
+                            nuevoComentario={nuevoComentario}
+                            setNuevoComentario={setNuevoComentario}
+                            enviarComentario={enviarComentario}
+                            enviandoComentario={enviandoComentario}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
