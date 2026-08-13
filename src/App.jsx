@@ -5,10 +5,9 @@ import LandingPageDemo from './components/LandingPageDemo';
 const MI_CORREO_ADMIN = "alquimia135@gmail.com";
 
 function App() {
-  /* ==========================================
-     🌿 0. LANDING PAGE DE PRUEBA (TEMPORAL)
-     ========================================== */
+  
   const [mostrarLandingDemo, setMostrarLandingDemo] = useState(true);
+
   /* ==========================================
      🌿 1. ESTADOS DE AUTENTICACIÓN Y SESIÓN
      ========================================== */
@@ -26,6 +25,7 @@ function App() {
   /* ==========================================
      📖 2. ESTADOS DE NAVEGACIÓN (VISTAS)
      ========================================== */
+  const [verLanding, setVerLanding] = useState(true);   
   const [cursoSeleccionado, setCursoSeleccionado] = useState(null);
   const [moduloActivo, setModuloActivo] = useState(0); // Índice del módulo en pantalla
   const [pestanaStaff, setPestanaStaff] = useState("contenido"); // "contenido", "alumnas", "comunidad"
@@ -66,12 +66,7 @@ function App() {
     cursos: [],
   });
 
-  /* ==========================================
-     🚀 VISTA CONDICIONAL LANDING DEMO
-     ========================================== */
-  if (mostrarLandingDemo) {
-    return <LandingPageDemo alIrADashboard={() => setMostrarLandingDemo(false)} />;
-  }
+  
   
   /* ==========================================
      💬 5. ESTADOS DE COMUNIDAD (COMENTARIOS)
@@ -371,6 +366,8 @@ function App() {
     };
   }, []); // <--- IMPORTANTE: El [] asegura que esto se monte UNA sola vez.
 
+
+
   // 2. Función auxiliar para el modal (puedes ponerla fuera o dentro del useEffect)
 
   const obtenerComentarios = async () => {
@@ -463,6 +460,14 @@ function App() {
   useEffect(() => {
     manejarActualizacionManual();
   }, [moduloActivoData, sesionIniciada]);
+
+  /* ==========================================
+     🚀 VISTA CONDICIONAL LANDING PAGE
+     (Ubicada después de TODOS los useState y useEffect)
+     ========================================== */
+  if (mostrarLandingDemo) {
+    return <LandingPageDemo alIrADashboard={() => setMostrarLandingDemo(false)} />;
+  }
 
   const enviarComentario = async () => {
     if (!nuevoComentario.trim()) return;
@@ -2226,7 +2231,7 @@ function App() {
           )}
         </div>
       )}
-
+      
       {/* ==========================================
           👥 MODAL PARA REGISTRAR ALUMNA (Admin)
           ========================================== */}
