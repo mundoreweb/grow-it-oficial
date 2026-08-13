@@ -1,11 +1,10 @@
 import { supabase } from "./supabaseClient";
 import React, { useState, useEffect } from "react";
-import LandingPageDemo from './components/LandingPageDemo';
+import LandingPageDemo from "./components/LandingPageDemo";
 
 const MI_CORREO_ADMIN = "alquimia135@gmail.com";
 
 function App() {
-  
   const [mostrarLandingDemo, setMostrarLandingDemo] = useState(true);
 
   /* ==========================================
@@ -25,7 +24,7 @@ function App() {
   /* ==========================================
      📖 2. ESTADOS DE NAVEGACIÓN (VISTAS)
      ========================================== */
-  const [verLanding, setVerLanding] = useState(true);   
+  const [verLanding, setVerLanding] = useState(true);
   const [cursoSeleccionado, setCursoSeleccionado] = useState(null);
   const [moduloActivo, setModuloActivo] = useState(0); // Índice del módulo en pantalla
   const [pestanaStaff, setPestanaStaff] = useState("contenido"); // "contenido", "alumnas", "comunidad"
@@ -66,8 +65,6 @@ function App() {
     cursos: [],
   });
 
-  
-  
   /* ==========================================
      💬 5. ESTADOS DE COMUNIDAD (COMENTARIOS)
      ========================================== */
@@ -366,8 +363,6 @@ function App() {
     };
   }, []); // <--- IMPORTANTE: El [] asegura que esto se monte UNA sola vez.
 
-
-
   // 2. Función auxiliar para el modal (puedes ponerla fuera o dentro del useEffect)
 
   const obtenerComentarios = async () => {
@@ -465,8 +460,36 @@ function App() {
      🚀 VISTA CONDICIONAL LANDING PAGE
      (Ubicada después de TODOS los useState y useEffect)
      ========================================== */
+  // if (mostrarLandingDemo) {
+  //   return <LandingPageDemo alIrADashboard={() => setMostrarLandingDemo(false)} />;
+  //}
   if (mostrarLandingDemo) {
-    return <LandingPageDemo alIrADashboard={() => setMostrarLandingDemo(false)} />;
+    return (
+      <div className="min-h-screen bg-[#FAF8F5] flex flex-col items-center justify-center p-6 text-center animate-fadeIn">
+        {/* Ícono / Ilustración sutil */}
+        <div className="w-20 h-20 bg-[#E8F0E6] text-[#4A6741] rounded-full flex items-center justify-center text-3xl mb-6 shadow-sm border border-[#4A6741]/20">
+          🌿
+        </div>
+
+        {/* Mensaje Principal */}
+        <h1 className="text-3xl md:text-4xl font-light italic text-[#4A6741] mb-4">
+          Preparando tu entorno Simple y Tranqui
+        </h1>
+
+        <p className="text-sm text-[#7A5C4F] max-w-md opacity-80 leading-relaxed mb-8">
+          Estamos afinando los últimos detalles, videos y módulos de muestra
+          para ofrecerte la mejor experiencia.
+        </p>
+
+        {/* Botón sutil para ingresar al Dashboard / Pruebas */}
+        <button
+          onClick={() => setMostrarLandingDemo(false)}
+          className="px-6 py-2.5 bg-[#4A6741] text-white text-xs font-semibold rounded-full hover:bg-[#3B5334] transition-all shadow-sm hover:shadow"
+        >
+          Acceso Alumnas / Panel 🔒
+        </button>
+      </div>
+    );
   }
 
   const enviarComentario = async () => {
@@ -2231,7 +2254,7 @@ function App() {
           )}
         </div>
       )}
-      
+
       {/* ==========================================
           👥 MODAL PARA REGISTRAR ALUMNA (Admin)
           ========================================== */}
