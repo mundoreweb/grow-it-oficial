@@ -1,22 +1,47 @@
 import React, { useState } from "react";
+import { supabase } from '../supabaseClient';
 
 export default function LandingPageDemo({ alIrADashboard }) {
   const [emailLead, setEmailLead] = useState("");
   const [paso, setPaso] = useState("landing"); // 'landing' | 'modulo'
   const [solicitoDescargable, setSolicitoDescargable] = useState(false);
 
-  // Paso 1: Enviar correo para ver el módulo
-  const handleRegistroModulo = (e) => {
+ // Paso 1: Enviar correo para ver el módulo y guardarlo en Supabase
+  const handleRegistroModulo = async (e) => {
     e.preventDefault();
-    if (emailLead.trim()) {
-      setPaso("modulo");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+    if (!emailLead.trim()) return;
+
+    try {
+      // Guardado real en Supabase
+      const { error } = await supabase
+        .from('leads')
+        .insert([{ email: emailLead.trim(), origen: 'Landing - Clase de Muestra' }]);
+
+      if (error && error.code !== '23505') { 
+        // Ignoramos error 23505 (correo duplicado) para permitirle avanzar
+        console.error('Error al guardar lead:', error.message);
+      }
+    } catch (err) {
+      console.error('Error de conexión:', err);
     }
+
+    // Cambiamos a la vista del módulo
+    setPaso('modulo');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Paso 2: Solicitar descargable desde la página del módulo
-  const handlePedirDescargable = () => {
+  // Paso 2: Actualizar el lead en Supabase cuando pide el descargable
+  const handlePedirDescargable = async () => {
     setSolicitoDescargable(true);
+
+    try {
+      await supabase
+        .from('leads')
+        .update({ solicito_descargable: true })
+        .eq('email', emailLead.trim());
+    } catch (err) {
+      console.error('Error al actualizar descargable:', err);
+    }
   };
 
   // ========================================================
