@@ -622,77 +622,81 @@ function App() {
     }
   };
 
-  const cargarTodo = async (esAdminActual = false, permitidos = []) => {
-    try {
-      // 1. CARGAR ALUMNAS (Solo si es Admin)
-      if (esAdminActual) {
-        const { data: dataAlumnas, error: errorAlumnas } = await supabase
-          .from("alumnas")
-          .select("*");
+  /* ==========================================
+   🔄 CARGA GLOBAL DE DATOS (CURSOS Y ALUMNAS)
+   ========================================== */
+async function cargarTodo(esAdminActual = false, permitidos = []) {
+  try {
+    // 1. CARGAR ALUMNAS (Solo si es Admin)
+    if (esAdminActual) {
+      const { data: dataAlumnas, error: errorAlumnas } = await supabase
+        .from("alumnas")
+        .select("*");
 
-        if (!errorAlumnas && dataAlumnas) {
-          setListaAlumnas(
-            dataAlumnas.map((al) => ({
-              id: al.id,
-              nombre: al.nombre || "Sin nombre", // 👈 ¡Agregamos el nombre aquí!
-              email: al.email,
-              cursosPermitidos: al.cursos_permitidos || [],
-            })),
-          );
-        }
+      if (!errorAlumnas && dataAlumnas) {
+        setListaAlumnas(
+          dataAlumnas.map((al) => ({
+            id: al.id,
+            nombre: al.nombre || "Sin nombre",
+            email: al.email,
+            cursosPermitidos: al.cursos_permitidos || [],
+          }))
+        );
       }
-
-      // 2. CARGAR CURSOS Y MÓDULOS
-      // Traemos todo el árbol de contenido de una sola vez
-      const { data: dataCursos, error: errorCursos } = await supabase
-        .from("cursos")
-        .select(`*, modulos (*)`);
-
-      if (errorCursos) throw errorCursos;
-
-      if (dataCursos) {
-        // 1. Mapeamos todos los cursos (como ya lo hacías)
-        const todosLosCursos = dataCursos.map((c) => ({
-          id: c.id,
-          nombre: c.nombre, // 👈 Asegúrate que en la tabla 'cursos' la columna se llame 'nombre'
-          foto: c.foto,
-          modulos: (c.modulos || []).sort(
-            (a, b) => Number(a.numero) - Number(b.numero),
-          ),
-        }));
-
-        // 2. FILTRADO LÓGICO
-        if (esAdminActual) {
-          // 👑 ERES ADMIN: No hay filtros.
-
-          setListaDeCursos(todosLosCursos);
-        } else {
-          // Si es alumna (Rosalba), solo filtramos los que coincidan con su lista de permitidos
-          const cursosFiltrados = todosLosCursos.filter((curso) =>
-            permitidos.includes(curso.nombre),
-          );
-
-          console.log(
-            "Cursos encontrados para la alumna:",
-            cursosFiltrados.length,
-          );
-          setListaDeCursos(cursosFiltrados);
-        }
-        if (cursoSeleccionado) {
-          const cursoFresco = todosLosCursos.find(
-            (c) => c.id === cursoSeleccionado.id,
-          );
-          if (cursoFresco) {
-            setCursoSeleccionado(cursoFresco);
-            console.log("📺 Vista del curso actual sincronizada.");
-          }
-        }
-        console.log("✅ Datos globales actualizados con éxito.");
-      }
-    } catch (err) {
-      console.error("❌ Error en cargarTodo:", err.message);
     }
-  };
+
+    // 2. CARGAR CURSOS Y MÓDULOS
+    const { data: dataCursos, error: errorCursos } = await supabase
+      .from("cursos")
+      .select(`*, modulos (*)`);
+
+    if (errorCursos) throw errorCursos;
+
+    if (dataCursos) {
+      // Mapeo y orden de módulos por número
+      const todosLosCursos = dataCursos.map((c) => ({
+        id: c.id,
+        nombre: c.nombre,
+        foto: c.foto,
+        modulos: (c.modulos || []).sort(
+          (a, b) => Number(a.numero) - Number(b.numero)
+        ),
+      }));
+
+      // 3. FILTRADO POR ROL
+      if (esAdminActual) {
+        // 👑 ADMIN: Acceso total a todos los cursos
+        setListaDeCursos(todosLosCursos);
+      } else {
+        // 👩‍🎓 ALUMNA: Filtrado por lista de permitidos
+        const cursosFiltrados = todosLosCursos.filter((curso) =>
+          permitidos.includes(curso.nombre)
+        );
+
+        console.log(
+          "Cursos encontrados para la alumna:",
+          cursosFiltrados.length
+        );
+        setListaDeCursos(cursosFiltrados);
+      }
+
+      // Sincronización del curso activo si estaba seleccionado
+      if (cursoSeleccionado) {
+        const cursoFresco = todosLosCursos.find(
+          (c) => c.id === cursoSeleccionado.id
+        );
+        if (cursoFresco) {
+          setCursoSeleccionado(cursoFresco);
+          console.log("📺 Vista del curso actual sincronizada.");
+        }
+      }
+
+      console.log("✅ Datos globales actualizados con éxito.");
+    }
+  } catch (err) {
+    console.error("❌ Error en cargarTodo:", err.message);
+  }
+}
 
   const salirAlAula = () => {
     // 1. En lugar de false, mantenemos la sesión pero quitamos los modos de edición
